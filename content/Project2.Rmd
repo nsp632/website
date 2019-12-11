@@ -249,7 +249,6 @@ class_diag<-function(probs,truth){
   data.frame(acc,sens,spec,ppv,auc)
   }
 library(tidyverse)
-library(plotROC)
 fit4 <- glm(citizenB~., data = marijuana, family = 'binomial')
 coeftest(fit4)
 probs <- predict(fit4, type = "response")
@@ -261,10 +260,6 @@ data <- marijuana
 data$logit <- predict(fit4, type = 'link')
 data %>% ggplot() + geom_density(aes(logit, color = citizenB, fill = citizenB), alpha = 0.4) +
   theme(legend.position = c(0.85, 0.85)) + geom_vline(xintercept = 0) 
-
-##ROC curve
-ROCPlot <- ggplot(data) + geom_roc(aes(d = marijuana$citizenB, m = probs), n.cuts = 0)
-ROCPlot
 
 #10 fold 
 set.seed(1234)
