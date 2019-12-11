@@ -1,0 +1,365 @@
+---
+title: "WS12"
+author: "SDS328M Fall 2019"
+date: "10/21/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{R}
+library(tidyverse)
+
+t<-vector() #create vec to hold simulated t statistics
+
+for(i in 1:10000){
+  samp<-rnorm(25,mean=5) #sample of 25 from a pop with mu=5 
+# samp<-runif(25,min=0,max=10) pop doesn't have to be normal!
+  t[i] <- (mean(samp)-5)/(sd(samp)/sqrt(25)) #compute t statistic under H0: mu=5 (which is true)
+}
+``` 
+
+
+
+```{R}
+data.frame(t)%>%
+ggplot(aes(t))+geom_histogram(aes(y=..density..), bins=30)+
+  stat_function(fun=dt,args=list(df=24),geom="line")
+
+``` 
+
+
+
+```{R}
+quantile(t,.975)
+
+``` 
+
+
+
+```{R}
+qt(.975, df=24)
+
+
+```
+
+
+```{R}
+samp<-c(-.94, -.84, -.61, -.10, .06, .34, .38, .57, 1.14, 1.80)
+
+qsamp<-samp+diff(samp)/2 #midpoints each 2 consecutive points gives approx decile
+# or qsamp<-samp%>%quantile(c(1:10/10))
+
+
+``` 
+
+```{R}
+qsamp #observed deciles
+
+qnorm(1:10/10) #actual deciles for a standard normal
+
+
+``` 
+
+
+```{R}
+# Quantile-Quantile (Q-Q) plot
+data.frame(theoretical=qnorm(1:10/10),sample=qsamp)%>%
+  ggplot(aes(theoretical,sample))+geom_point()+geom_abline(slope=1,intercept=0)
+
+
+``` 
+
+
+```{R}
+data.frame(t)%>%ggplot(aes(sample=t)) +
+stat_qq(distribution=qt, dparams = list(df=24)) +
+stat_qq_line(distribution=qt, dparams = list(df=24))
+
+
+``` 
+
+
+```{R}
+data.frame(t)%>%
+  ggplot(aes(sample=t)) +
+  stat_qq()+stat_qq_line()
+
+
+``` 
+
+
+```{R}
+X2<-vector()
+for(i in 1:10000){
+  samp<-sample(factor(c("A","B","C")),60,replace=T) #draw a sample
+  obs<-table(samp) #compute observed counts of A, B, C
+  exp<-c(20,20,20) #expected counts
+  X2[i]<-sum((obs-exp)^2/exp) #compute chisquared test statistic
+}
+
+
+``` 
+
+
+```{R}
+data.frame(X2)%>%
+ggplot(aes(X2))+geom_histogram(aes(y=..density..),bins = 33)+
+  stat_function(fun=dchisq,args=list(df=2),geom="line")
+
+
+```
+
+```{R}
+data.frame(X2)%>%
+  ggplot(aes(sample=X2)) +
+  stat_qq(distribution = qchisq, dparams = list(df=2)) +
+  stat_qq_line(distribution = qchisq, dparams = list(df=2))
+
+
+``` 
+
+
+```{R}
+quantile(X2,.95)
+
+
+``` 
+
+
+
+```{R}
+qchisq(.95, df=2)
+
+
+``` 
+
+
+
+```{R}
+Fstat<-vector()
+for(i in 1:10000){
+  g1<-rnorm(36)
+  g2<-rnorm(36)
+  g3<-rnorm(36)
+  
+  SSW<- sum((g1-mean(g1))^2+(g2-mean(g2))^2+(g3-mean(g3))^2)
+  SSB<- 36*sum( (mean(c(g1,g2,g3))-c(mean(g1),mean(g2),mean(g3)))^2 )
+  Fstat[i]<- (SSB/2)/(SSW/99)
+}
+
+
+``` 
+
+
+```{R}
+data.frame(Fstat)%>%
+ggplot(aes(Fstat))+geom_histogram(aes(y=..density..),bins = 33)+
+  stat_function(fun=stats::df,args=list(df1=2,df2=99),geom="line")
+
+
+``` 
+
+
+```{R}
+data.frame(Fstat)%>%
+  ggplot(aes(sample=Fstat)) +
+  stat_qq(distribution = qf, dparams = list(df1=2,df2=99)) +
+  stat_qq_line(distribution = qf, dparams = list(df1=2,df2=99))
+
+
+``` 
+
+
+```{R}
+qf(.95, df1=2,df2=99)
+
+
+``` 
+
+
+```{R}
+correct<-vector()
+
+for(i in 1:5000){
+cups<-c(rep("m",4),rep("t",4)) #set up the cups
+pick<-sample(cups,4) #choose 4 at random 
+correct[i]<-sum(pick=="m") #how many had milk first?
+}
+
+
+``` 
+
+
+
+```{R}
+mean(correct>3) #probability of 4 successes if H0 is true
+mean(correct>2) #probability of at least 3 successes of H0 is true
+
+ggplot()+geom_histogram(aes(x=correct,y=..count../sum(..count..)))
+```
+
+
+```{R}
+
+starved<-c(1.9,2.1,3.8,9.0,9.6,13.0,14.7,17.9,21.7,29.0,72.3)
+fed<-c(1.5,1.7,2.4,3.6,5.7,22.6,22.8,39.0,54.4,72.1,73.6,79.5,88.9)
+
+cric<-data.frame(condition=c(rep("starved",11),rep("fed",13)),time=c(starved,fed))
+head(cric)
+
+
+``` 
+
+
+```{R}
+ggplot(cric,aes(time,fill=condition))+geom_histogram(bins=6.5)+facet_wrap(~condition,ncol=2)+theme(legend.position="none")
+
+
+``` 
+
+
+```{R}
+head(cric) 
+cric%>%group_by(condition)%>%
+  summarize(means=mean(time))%>%summarize(`mean_diff:`=diff(means))
+
+
+```
+
+
+
+```{R}
+head(perm1<-data.frame(condition=cric$condition,time=sample(cric$time)))
+perm1%>%group_by(condition)%>%
+  summarize(means=mean(time))%>%summarize(`mean_diff:`=diff(means))
+
+
+``` 
+
+```{R}
+head(perm2<-data.frame(condition=cric$condition,time=sample(cric$time))) 
+perm2%>%group_by(condition)%>%
+  summarize(means=mean(time))%>%summarize(`mean_diff:`=diff(means))
+
+
+``` 
+
+
+```{R}
+head(perm3<-data.frame(condition=cric$condition,time=sample(cric$time))) 
+perm3%>%group_by(condition)%>%
+  summarize(means=mean(time))%>%summarize(`mean_diff:`=diff(means))
+
+
+```{R}
+rand_dist<-vector()
+
+for(i in 1:5000){
+new<-data.frame(time=sample(cric$time),condition=cric$condition) 
+rand_dist[i]<-mean(new[new$condition=="fed",]$time)-
+              mean(new[new$condition=="starved",]$time)}
+
+{hist(rand_dist,main="",ylab=""); abline(v = 18.258,col="red")}
+
+
+``` 
+
+```{R}
+mean(rand_dist>18.258)*2 #pvalue
+
+
+``` 
+
+
+```{R}
+t.test(data=cric,time~condition)
+
+
+``` 
+
+
+```{R}
+cric%>%group_by(condition)%>%summarize(s=sd(time))
+
+
+
+
+``` 
+
+```{R}
+mtcars%>%summarize(xbar=mean(mpg), s=sd(mpg), n=n(), 
+                   lower=xbar-qt(.975,df=31)*s/sqrt(n), upper=xbar+qt(.975,df=31)*s/sqrt(n))
+
+
+``` 
+
+```{R}
+mtcars$mpg%>%sort
+mtcars$mpg%>%mean
+
+samp1<-sample(mtcars$mpg,replace=T) #bootstrap sample
+sort(samp1)
+mean(samp1)
+
+
+```
+
+
+```{R}
+means<-vector()
+
+for(i in 1:5000){
+samp<-sample(mtcars$mpg,replace=T) #take bootstrap sample
+means[i]<-mean(samp) #calculate and save the mean
+}
+
+quantile(means,c(.025, .975))
+
+
+```
+
+
+```{R}
+ggplot()+geom_histogram(aes(means))+geom_vline(xintercept=quantile(means,c(.025,.975)))
+
+
+``` 
+
+
+```{R}
+sd(means)
+
+ggplot()+geom_histogram(aes(means))+
+  geom_vline(xintercept=mean(means)+c(-1,1)*sd(means)) #mean +/- 1 SE
+
+
+``` 
+
+```{R}
+#define a function that takes your data x and returns bootstrap SE
+bootse<-function(x,n=5000){
+  means<-vector()
+  for(i in 1:n){
+    means[i]<- mean(sample(x,replace=T))
+  }
+  return(sd(means))
+}
+
+mean_se<-mtcars%>%group_by(am)%>%summarize(mean_mpg=mean(mpg),se=bootse(mpg))
+mean_se
+
+ggplot(mean_se, aes(x=am,y=mean_mpg))+geom_bar(stat="identity")+
+                           geom_errorbar(aes(ymax=mean_mpg+se, ymin=mean_mpg-se), width=.5)
+
+
+``` 
+
+```{R}
+mtcars%>%ggplot(aes(x=am,y=mpg))+geom_bar(stat="summary",fun.y=mean)+
+  geom_errorbar(stat="summary",fun.data=mean_cl_boot, width=.5)
+

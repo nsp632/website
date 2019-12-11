@@ -1,0 +1,221 @@
+---
+title: "Project 1"
+author: "Neil Pareddy"
+date: "18/10/2019"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(httr)
+library(reshape2)
+library(factoextra)
+
+```
+
+## Introduction
+
+Buzzfeed had published an article titled, "The Agriculture Department Hired More Than 50 Political Appointees. They All Say They're White.," wherein they featured an analysis regarding the disparency of minority representation between Senior Executives and Political Staff. To corroberate this theory, the datasets used in Project 1 come form the Office of Personnel Management's FedScope tool. The ethnic diversity data comes from FedScope's "Diversity Cubes", and the gender data is come from the "Employment Cubes". The diversity data contains variables, "quarter"- describing year and quarter, "toa_group"- describing executive or midlevel political staff, "count_all"- total count, "count_minority"- count of minorities, and "pct_minorty"- percentage minority. The gender dataset has variables "quarter"- describing year and quarter, "toa_group"- describing executive or midlevel political staff, "count_all"- total count, "count_minority"- count of females, and "pct_female"- percentage female. 
+
+An disparency between minority representation in senior executives and midlevel political staff might be found, in addition to testing if there is a relationship between female and minorty representation. 
+
+## Joining/Merging
+
+Right join was performed (gender.by.quarter to quarter.by.quarter). gender.by.quarter has data ranging from 1998-2017, wheras diversity .by.quarter has data from 1998-2005 missing. Therefore right_join eliminates years prior to 2006 from the joined dataset whithout having to perform an additional step. Joining was performed using keys "quarter and "toa_group". However, multiple inconsistent rows resulted. These were deleted. The joined data set initially had values of Year & Quarter seperated by "-" in a single column, therefore a seperation. The values of quarter were changed from 03, 06, 09, 12 to 1, 2, 3, 4.
+
+
+```{r}
+
+#Tidying: Rearranging Wide/Long
+gender.by.quarter <- read.csv("/Users/raghupareddy/gender-by-quarter.csv")
+diversity.by.quarter <- read.csv("/Users/raghupareddy/diversity-by-quarter.csv")
+
+
+#coun_all_genders should be changed to count_all, when reading into R-markup
+gender.by.quarter = subset(gender.by.quarter, select = -c(count_all) )
+female_diversity <- gender.by.quarter %>% right_join(diversity.by.quarter, by = "quarter", "toa_group")
+
+female_diversity <- female_diversity[ c(1, 4, 5, 8, 9, 12, 13, 16, 17, 20, 21, 24, 25, 28, 29, 32, 33, 36, 37, 40, 41, 44, 45, 48, 49, 52, 53, 56, 57, 60, 61, 64, 65, 68, 69, 72, 73, 76, 77, 80, 81, 84, 85, 88, 89, 92, 93, 96, 97, 100, 101, 104, 105, 108, 109, 112, 113, 116, 117, 120, 121, 124, 125, 128, 129, 132, 133, 136, 137, 140, 141, 144), ]
+female_diversity = subset(female_diversity, select = -c(toa_group.y) )
+female_diversity <- female_diversity %>% separate(quarter, c('Year', 'Quarter'), sep="-")
+female_diversity$Quarter[female_diversity$Quarter == "03"] <- 1
+female_diversity$Quarter[female_diversity$Quarter == "06"] <- 2
+female_diversity$Quarter[female_diversity$Quarter == "09"] <- 3
+female_diversity$Quarter[female_diversity$Quarter == "12"] <- 4
+colnames(female_diversity)[which(names(female_diversity) == "toa_group.x")] <- "toa_group"
+
+#Tidy data glimpse()
+glimpse(female_diversity)
+```
+
+## Tidying: Rearranging Wide/Long
+
+The data was already tidy. To untidy, toa_group was duplicated. The origional column was pivoted wider creating 5 seperate columns. First, toa_group was replicated into a column called 'replicate(1, female_diversity$toa_group)', to preserve the origional. This duplicate column was pivoted wider using values from count_female. Therefore, values of count_female were split between columns "all-permanent", and "midlevel-appointees" in alternating rows. Column "toa_group" was pivoted longer into "count", "all.x", and a column identical to toa_group called "value". This created a clutter. 
+
+To retidy the dataset, na values from columns 'all-permanent' and 'midlevel-appointees' were assigned 0. Therefore, column 'count', which as a result of untidying is without purpose is assigned the sum of columns 'all-permanent' and 'midlevel-appointees'. Column names were changed and female_diversity was taken as a subset only including funcitonal columns. 
+
+```{r}
+
+# Untidying 
+
+female_diversity = cbind(female_diversity, replicate(1,female_diversity$toa_group))
+female_diversity <- female_diversity %>% pivot_wider(names_from = `replicate(1, female_diversity$toa_group)`, values_from = "count_female")
+
+female_diversity <- female_diversity %>% pivot_longer(col = c(3))%>%
+separate(name, into = c("count","all.x"),sep = "_")
+
+#Untidy data glimpse()
+glimpse(female_diversity)
+
+#Retidying
+
+
+female_diversity[is.na(female_diversity)] <- 0
+female_diversity$count <- female_diversity$`all-permanent` + female_diversity$`midlevel-appointees`
+female_diversity = subset(female_diversity, select = -c(7, 8, 10) )
+
+
+colnames(female_diversity)[which(names(female_diversity) == "value")] <- "toa_group"
+colnames(female_diversity)[which(names(female_diversity) == "count")] <- "count_female"
+female_diversity <- female_diversity[c(1,2,8,3,4,5,6,7)]
+
+#Retidy data glimpse()
+glimpse(female_diversity)
+
+
+
+
+```
+
+
+
+## Wrangling
+
+The mean percentage % of minorities was found higher in Senior Executives than in political staff. However, it was found oppoisite for female percentage % in administrative offices. Data was arranged in descending order of percentage % female to observe a visual trend between Year and pct_female. During years 2012 - 2016 pct_female was increasing generally, before which was erratic. A new column was created from standard deviation of pct_female. For year 2014, the mean of percentage % female and percentage % minority was created, showing a filter statistic. 
+
+A correlation matrix showed no significant between any variables. Pecentage % minority and Year showed highest correlation of 0.2649590, which is still not significant however. 
+
+```{r}
+#Summary Statistics
+
+#group_by & summarise
+female_diversity %>% group_by(toa_group) %>% summarise(mean(pct_female), mean(pct_minority))
+
+#arrange
+female_diversity %>% arrange(desc(pct_female)) %>% glimpse
+
+#mutate
+female_diversity <- female_diversity %>%
+  mutate(not_minority = count_all - count_minority, stdev_pct_female = sd(pct_female)) %>% glimpse()
+
+
+
+#converting chacter column type to numeric
+female_diversity$Year <- as.numeric(as.character(female_diversity$Year))
+female_diversity$Quarter <- as.numeric(as.character(female_diversity$Quarter))
+sapply(female_diversity, mode)
+
+#select & correlation
+female_diversity %>% select(Year, pct_female, pct_minority) %>% cor()
+
+# filter
+female_diversity %>% filter(Year >= 2014) %>% group_by(Quarter) %>% summarize(mean(pct_female), mean(pct_minority))
+
+
+```
+
+## Visualization
+
+The barplot shows a generally weak increase in count of minorities form 2006 with the highest representation in the most recent year (2017). The total count of government employees (blue plus read on barplot) increased as well. The count of whites also increased from 2016, and peaked at 2011 by visual incpection.
+
+The overlapping scatterplot shows both % female and % minority was lowest from 2006 - 2008. Wherafter an imediate increase at 2009 and steadily increase therforth to 2016 where both plots peak. However, 2017 shows a return of % similar to that during 2006 - 2008, suggesting 2017 could be an unusual year. 
+
+
+```{r}
+female_diversity$Year <- as.character(as.numeric(female_diversity$Year))
+plot_data1 <- female_diversity %>% select(Year, count_minority, not_minority)
+
+mm = melt(plot_data1)
+
+
+#First plot
+female_diversity$Year <- as.character(as.numeric(female_diversity$Year))
+plot_data1 <- female_diversity %>% select(Year, count_minority, not_minority)
+
+mm = melt(plot_data1)
+
+ggplot(mm)+geom_bar(aes(x=Year, fill=variable,y=value ), stat='summary') + labs(title = "", x= "", y ="") + theme_bw() + ggtitle("Minority vs not minority") + labs(y="Total count in administrative office", x = "Year")
+
+#Second Plot
+scatter_plotting_data <- female_diversity %>% group_by(Year) %>% summarize(mean_pct_minority = mean(pct_minority), mean_pct_female = mean(pct_female))
+
+#change color
+ggplot(scatter_plotting_data, aes(x = Year, y = value)) + 
+    geom_point(aes(y = mean_pct_female, col = "Percentage Female %") ,color='green') + 
+    geom_point(aes(y = mean_pct_minority, col = "Percentage Minority %"), color = 'cyan') + theme_dark() +  ggtitle("Percentage Female and Minority") + labs(y="Percentage %", x = "Year")
+
+  
+
+  
+
+```
+
+## Dimensionality Reduction
+
+The PC plot shows groups of outliers and clumping of data, which shows no correlation. PC1 is genral strength axis, coefficients have varying signs and a generally low number suggesting a weak strength in data. From varprop graph, PC1 and PC2 eplain the most variance, and PC3 and PC4 seem to be where the scree floor flattens. But none explain variance > 80%. Kasier's rule suggests PC1 and PC2 are significant with eigenvalues values > 1. Since the angle between the arrow of % minority and % female is high and to either sides of then line perpendicular to the PC1 axis, it suggests no correlation between $ minority and % female. 
+
+
+```{r}
+
+#Change to 3 and 10
+temp = subset(female_diversity, select = -c(3, 10) )
+
+sapply(temp, mode)
+
+temp = subset(temp, select = -c(1, 2, 7, 8) )
+
+
+
+# temp$Year <- as.numeric(as.character(temp$Year))
+temp2 = data.frame(scale(temp))
+
+ggplot(temp2, aes(x = pct_minority, y = pct_female))+geom_point()+coord_fixed() + ggtitle("PC Plot")
+
+
+
+temp3 <- princomp(temp2)
+
+summary(temp3, loadings=T)
+
+eigval<-temp3$sdev^2 #square to convert SDs to eigenvalues
+varprop=round(eigval/sum(eigval),2) #proportion of var explained by each PC
+
+ggplot()+geom_bar(aes(y=varprop,x=1:4),stat="identity")+xlab("")+geom_path(aes(y=varprop,x=1:4))+
+  geom_text(aes(x=1:4,y=varprop,label=round(varprop,2)),vjust=1,col="white",size=5)+
+  scale_y_continuous(breaks=seq(0,.6,.2),labels = scales::percent)+
+  scale_x_continuous(breaks=1:10) + ggtitle("Varprop")
+
+round(cumsum(eigval)/sum(eigval),2)
+
+eigval
+
+ggplot()+geom_point(aes(temp3$scores[,1], temp3$scores[,2]))+xlab("PC1")+ylab("PC2")
+
+temp3$loadings[1:4,1:2]%>%as.data.frame%>%rownames_to_column%>%
+ggplot()+geom_hline(aes(yintercept=0),lty=2)+
+  geom_vline(aes(xintercept=0),lty=2)+ylab("PC2")+xlab("PC1")+
+  geom_segment(aes(x=0,y=0,xend=Comp.1,yend=Comp.2),arrow=arrow(),col="red")+
+  geom_label(aes(x=Comp.1*1.1,y=Comp.2*1.1,label=rowname))
+
+
+fviz_pca_biplot(temp3)
+
+```
+

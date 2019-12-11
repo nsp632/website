@@ -1,0 +1,258 @@
+---
+title: "Project 1"
+author: "Neil Pareddy"
+date: "18/10/2019"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Buzzfeed had published an article titled, “The Agriculture Department Hired More Than 50 Political Appointees. They All Say They’re White.,” wherein they featured an analysis regarding the disparency of minority representation between Senior Executives and Political Staff. To corroberate this theory, the datasets used in Project 1 come form the Office of Personnel Management’s FedScope tool. The ethnic diversity data comes from FedScope’s “Diversity Cubes”, and the gender data is come from the “Employment Cubes”. The diversity data contains variables, “quarter”- describing year and quarter, “toa_group”- describing executive or midlevel political staff, “count_all”- total count, “count_minority”- count of minorities, and “pct_minorty”- percentage minority. The gender dataset has variables “quarter”- describing year and quarter, “toa_group”- describing executive or midlevel political staff, “count_all”- total count, “count_minority”- count of females, and “pct_female”- percentage female.</p>
+<p>An disparency between minority representation in senior executives and midlevel political staff might be found, in addition to testing if there is a relationship between female and minorty representation.</p>
+</div>
+<div id="joiningmerging" class="section level2">
+<h2>Joining/Merging</h2>
+<p>Right join was performed (gender.by.quarter to quarter.by.quarter). gender.by.quarter has data ranging from 1998-2017, wheras diversity .by.quarter has data from 1998-2005 missing. Therefore right_join eliminates years prior to 2006 from the joined dataset whithout having to perform an additional step. Joining was performed using keys “quarter and”toa_group“. However, multiple inconsistent rows resulted. These were deleted. The joined data set initially had values of Year &amp; Quarter seperated by”-&quot; in a single column, therefore a seperation. The values of quarter were changed from 03, 06, 09, 12 to 1, 2, 3, 4.</p>
+<pre class="r"><code>#Tidying: Rearranging Wide/Long
+gender.by.quarter &lt;- read.csv(&quot;/Users/raghupareddy/gender-by-quarter.csv&quot;)
+diversity.by.quarter &lt;- read.csv(&quot;/Users/raghupareddy/diversity-by-quarter.csv&quot;)
+
+
+#coun_all_genders should be changed to count_all, when reading into R-markup
+gender.by.quarter = subset(gender.by.quarter, select = -c(count_all) )
+female_diversity &lt;- gender.by.quarter %&gt;% right_join(diversity.by.quarter, by = &quot;quarter&quot;, &quot;toa_group&quot;)</code></pre>
+<pre><code>## Warning: Column `quarter` joining factors with different levels, coercing
+## to character vector</code></pre>
+<pre class="r"><code>female_diversity &lt;- female_diversity[ c(1, 4, 5, 8, 9, 12, 13, 16, 17, 20, 21, 24, 25, 28, 29, 32, 33, 36, 37, 40, 41, 44, 45, 48, 49, 52, 53, 56, 57, 60, 61, 64, 65, 68, 69, 72, 73, 76, 77, 80, 81, 84, 85, 88, 89, 92, 93, 96, 97, 100, 101, 104, 105, 108, 109, 112, 113, 116, 117, 120, 121, 124, 125, 128, 129, 132, 133, 136, 137, 140, 141, 144), ]
+female_diversity = subset(female_diversity, select = -c(toa_group.y) )
+female_diversity &lt;- female_diversity %&gt;% separate(quarter, c(&#39;Year&#39;, &#39;Quarter&#39;), sep=&quot;-&quot;)
+female_diversity$Quarter[female_diversity$Quarter == &quot;03&quot;] &lt;- 1
+female_diversity$Quarter[female_diversity$Quarter == &quot;06&quot;] &lt;- 2
+female_diversity$Quarter[female_diversity$Quarter == &quot;09&quot;] &lt;- 3
+female_diversity$Quarter[female_diversity$Quarter == &quot;12&quot;] &lt;- 4
+colnames(female_diversity)[which(names(female_diversity) == &quot;toa_group.x&quot;)] &lt;- &quot;toa_group&quot;
+
+#Tidy data glimpse()
+glimpse(female_diversity)</code></pre>
+<pre><code>## Observations: 72
+## Variables: 8
+## $ Year           &lt;chr&gt; &quot;2006&quot;, &quot;2006&quot;, &quot;2007&quot;, &quot;2007&quot;, &quot;2008&quot;, &quot;2008&quot;, &quot;…
+## $ Quarter        &lt;chr&gt; &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;4&quot;, &quot;4&quot;,…
+## $ toa_group      &lt;fct&gt; all-permanent, midlevel-appointees, all-permanent…
+## $ count_female   &lt;int&gt; 692179, 877, 697592, 933, 725428, 838, 763181, 86…
+## $ pct_female     &lt;dbl&gt; 43.04176, 39.04720, 43.11023, 40.30238, 43.35446,…
+## $ count_all      &lt;int&gt; 1608157, 2246, 1618159, 2315, 1673249, 2138, 1757…
+## $ count_minority &lt;int&gt; 521323, 268, 532756, 259, 560098, 225, 590216, 45…
+## $ pct_minority   &lt;dbl&gt; 32.41742, 11.93232, 32.92359, 11.18790, 33.47368,…</code></pre>
+</div>
+<div id="tidying-rearranging-widelong" class="section level2">
+<h2>Tidying: Rearranging Wide/Long</h2>
+<p>The data was already tidy. To untidy, toa_group was duplicated. The origional column was pivoted wider creating 5 seperate columns. First, toa_group was replicated into a column called ‘replicate(1, female_diversity$toa_group)’, to preserve the origional. This duplicate column was pivoted wider using values from count_female. Therefore, values of count_female were split between columns “all-permanent”, and “midlevel-appointees” in alternating rows. Column “toa_group” was pivoted longer into “count”, “all.x”, and a column identical to toa_group called “value”. This created a clutter.</p>
+<p>To retidy the dataset, na values from columns ‘all-permanent’ and ‘midlevel-appointees’ were assigned 0. Therefore, column ‘count’, which as a result of untidying is without purpose is assigned the sum of columns ‘all-permanent’ and ‘midlevel-appointees’. Column names were changed and female_diversity was taken as a subset only including funcitonal columns.</p>
+<pre class="r"><code># Untidying 
+
+female_diversity = cbind(female_diversity, replicate(1,female_diversity$toa_group))
+female_diversity &lt;- female_diversity %&gt;% pivot_wider(names_from = `replicate(1, female_diversity$toa_group)`, values_from = &quot;count_female&quot;)
+
+female_diversity &lt;- female_diversity %&gt;% pivot_longer(col = c(3))%&gt;%
+separate(name, into = c(&quot;count&quot;,&quot;all.x&quot;),sep = &quot;_&quot;)
+
+#Untidy data glimpse()
+glimpse(female_diversity)</code></pre>
+<pre><code>## Observations: 72
+## Variables: 11
+## $ Year                  &lt;chr&gt; &quot;2006&quot;, &quot;2006&quot;, &quot;2007&quot;, &quot;2007&quot;, &quot;2008&quot;, &quot;2…
+## $ Quarter               &lt;chr&gt; &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;4…
+## $ pct_female            &lt;dbl&gt; 43.04176, 39.04720, 43.11023, 40.30238, 43…
+## $ count_all             &lt;int&gt; 1608157, 2246, 1618159, 2315, 1673249, 213…
+## $ count_minority        &lt;int&gt; 521323, 268, 532756, 259, 560098, 225, 590…
+## $ pct_minority          &lt;dbl&gt; 32.41742, 11.93232, 32.92359, 11.18790, 33…
+## $ `all-permanent`       &lt;int&gt; 692179, NA, 697592, NA, 725428, NA, 763181…
+## $ `midlevel-appointees` &lt;int&gt; NA, 877, NA, 933, NA, 838, NA, 866, NA, 94…
+## $ count                 &lt;chr&gt; &quot;toa&quot;, &quot;toa&quot;, &quot;toa&quot;, &quot;toa&quot;, &quot;toa&quot;, &quot;toa&quot;, …
+## $ all.x                 &lt;chr&gt; &quot;group&quot;, &quot;group&quot;, &quot;group&quot;, &quot;group&quot;, &quot;group…
+## $ value                 &lt;fct&gt; all-permanent, midlevel-appointees, all-pe…</code></pre>
+<pre class="r"><code>#Retidying
+
+
+female_diversity[is.na(female_diversity)] &lt;- 0
+female_diversity$count &lt;- female_diversity$`all-permanent` + female_diversity$`midlevel-appointees`
+female_diversity = subset(female_diversity, select = -c(7, 8, 10) )
+
+
+colnames(female_diversity)[which(names(female_diversity) == &quot;value&quot;)] &lt;- &quot;toa_group&quot;
+colnames(female_diversity)[which(names(female_diversity) == &quot;count&quot;)] &lt;- &quot;count_female&quot;
+female_diversity &lt;- female_diversity[c(1,2,8,3,4,5,6,7)]
+
+#Retidy data glimpse()
+glimpse(female_diversity)</code></pre>
+<pre><code>## Observations: 72
+## Variables: 8
+## $ Year           &lt;chr&gt; &quot;2006&quot;, &quot;2006&quot;, &quot;2007&quot;, &quot;2007&quot;, &quot;2008&quot;, &quot;2008&quot;, &quot;…
+## $ Quarter        &lt;chr&gt; &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;4&quot;, &quot;4&quot;,…
+## $ toa_group      &lt;fct&gt; all-permanent, midlevel-appointees, all-permanent…
+## $ pct_female     &lt;dbl&gt; 43.04176, 39.04720, 43.11023, 40.30238, 43.35446,…
+## $ count_all      &lt;int&gt; 1608157, 2246, 1618159, 2315, 1673249, 2138, 1757…
+## $ count_minority &lt;int&gt; 521323, 268, 532756, 259, 560098, 225, 590216, 45…
+## $ pct_minority   &lt;dbl&gt; 32.41742, 11.93232, 32.92359, 11.18790, 33.47368,…
+## $ count_female   &lt;dbl&gt; 692179, 877, 697592, 933, 725428, 838, 763181, 86…</code></pre>
+</div>
+<div id="wrangling" class="section level2">
+<h2>Wrangling</h2>
+<p>The mean percentage % of minorities was found higher in Senior Executives than in political staff. However, it was found oppoisite for female percentage % in administrative offices. Data was arranged in descending order of percentage % female to observe a visual trend between Year and pct_female. During years 2012 - 2016 pct_female was increasing generally, before which was erratic. A new column was created from standard deviation of pct_female. For year 2014, the mean of percentage % female and percentage % minority was created, showing a filter statistic.</p>
+<p>A correlation matrix showed no significant between any variables. Pecentage % minority and Year showed highest correlation of 0.2649590, which is still not significant however.</p>
+<pre class="r"><code>#Summary Statistics
+
+#group_by &amp; summarise
+female_diversity %&gt;% group_by(toa_group) %&gt;% summarise(mean(pct_female), mean(pct_minority))</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   toa_group           `mean(pct_female)` `mean(pct_minority)`
+##   &lt;fct&gt;                            &lt;dbl&gt;                &lt;dbl&gt;
+## 1 all-permanent                     42.8                 34.9
+## 2 midlevel-appointees               48.6                 26.8</code></pre>
+<pre class="r"><code>#arrange
+female_diversity %&gt;% arrange(desc(pct_female)) %&gt;% glimpse</code></pre>
+<pre><code>## Observations: 72
+## Variables: 8
+## $ Year           &lt;chr&gt; &quot;2016&quot;, &quot;2016&quot;, &quot;2016&quot;, &quot;2016&quot;, &quot;2015&quot;, &quot;2015&quot;, &quot;…
+## $ Quarter        &lt;chr&gt; &quot;2&quot;, &quot;1&quot;, &quot;3&quot;, &quot;4&quot;, &quot;1&quot;, &quot;2&quot;, &quot;4&quot;, &quot;4&quot;, &quot;3&quot;, &quot;1&quot;,…
+## $ toa_group      &lt;fct&gt; midlevel-appointees, midlevel-appointees, midleve…
+## $ pct_female     &lt;dbl&gt; 53.01364, 52.88419, 52.86539, 52.78417, 52.76770,…
+## $ count_all      &lt;int&gt; 2273, 2271, 2251, 2173, 2204, 2210, 2283, 2143, 2…
+## $ count_minority &lt;int&gt; 756, 757, 733, 711, 750, 743, 764, 732, 744, 617,…
+## $ pct_minority   &lt;dbl&gt; 33.26001, 33.33333, 32.56331, 32.71974, 34.02904,…
+## $ count_female   &lt;dbl&gt; 1205, 1201, 1190, 1147, 1163, 1162, 1194, 1119, 1…</code></pre>
+<pre class="r"><code>#mutate
+female_diversity &lt;- female_diversity %&gt;%
+  mutate(not_minority = count_all - count_minority, stdev_pct_female = sd(pct_female)) %&gt;% glimpse()</code></pre>
+<pre><code>## Observations: 72
+## Variables: 10
+## $ Year             &lt;chr&gt; &quot;2006&quot;, &quot;2006&quot;, &quot;2007&quot;, &quot;2007&quot;, &quot;2008&quot;, &quot;2008&quot;,…
+## $ Quarter          &lt;chr&gt; &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;3&quot;, &quot;4&quot;, &quot;4…
+## $ toa_group        &lt;fct&gt; all-permanent, midlevel-appointees, all-permane…
+## $ pct_female       &lt;dbl&gt; 43.04176, 39.04720, 43.11023, 40.30238, 43.3544…
+## $ count_all        &lt;int&gt; 1608157, 2246, 1618159, 2315, 1673249, 2138, 17…
+## $ count_minority   &lt;int&gt; 521323, 268, 532756, 259, 560098, 225, 590216, …
+## $ pct_minority     &lt;dbl&gt; 32.41742, 11.93232, 32.92359, 11.18790, 33.4736…
+## $ count_female     &lt;dbl&gt; 692179, 877, 697592, 933, 725428, 838, 763181, …
+## $ not_minority     &lt;int&gt; 1086834, 1978, 1085403, 2056, 1113151, 1913, 11…
+## $ stdev_pct_female &lt;dbl&gt; 4.437376, 4.437376, 4.437376, 4.437376, 4.43737…</code></pre>
+<pre class="r"><code>#converting chacter column type to numeric
+female_diversity$Year &lt;- as.numeric(as.character(female_diversity$Year))
+female_diversity$Quarter &lt;- as.numeric(as.character(female_diversity$Quarter))
+sapply(female_diversity, mode)</code></pre>
+<pre><code>##             Year          Quarter        toa_group       pct_female 
+##        &quot;numeric&quot;        &quot;numeric&quot;        &quot;numeric&quot;        &quot;numeric&quot; 
+##        count_all   count_minority     pct_minority     count_female 
+##        &quot;numeric&quot;        &quot;numeric&quot;        &quot;numeric&quot;        &quot;numeric&quot; 
+##     not_minority stdev_pct_female 
+##        &quot;numeric&quot;        &quot;numeric&quot;</code></pre>
+<pre class="r"><code>#select &amp; correlation
+female_diversity %&gt;% select(Year, pct_female, pct_minority) %&gt;% cor()</code></pre>
+<pre><code>##                    Year pct_female pct_minority
+## Year         1.00000000 0.09999283    0.2649590
+## pct_female   0.09999283 1.00000000    0.1842032
+## pct_minority 0.26495902 0.18420316    1.0000000</code></pre>
+<pre class="r"><code># filter
+female_diversity %&gt;% filter(Year &gt;= 2014) %&gt;% group_by(Quarter) %&gt;% summarize(mean(pct_female), mean(pct_minority))</code></pre>
+<pre><code>## # A tibble: 4 x 3
+##   Quarter `mean(pct_female)` `mean(pct_minority)`
+##     &lt;dbl&gt;              &lt;dbl&gt;                &lt;dbl&gt;
+## 1       1               45.7                 31.8
+## 2       2               45.6                 31.8
+## 3       3               45.5                 31.9
+## 4       4               47.5                 34.8</code></pre>
+</div>
+<div id="visualization" class="section level2">
+<h2>Visualization</h2>
+<p>The barplot shows a generally weak increase in count of minorities form 2006 with the highest representation in the most recent year (2017). The total count of government employees (blue plus read on barplot) increased as well. The count of whites also increased from 2016, and peaked at 2011 by visual incpection.</p>
+<p>The overlapping scatterplot shows both % female and % minority was lowest from 2006 - 2008. Wherafter an imediate increase at 2009 and steadily increase therforth to 2016 where both plots peak. However, 2017 shows a return of % similar to that during 2006 - 2008, suggesting 2017 could be an unusual year.</p>
+<pre class="r"><code>female_diversity$Year &lt;- as.character(as.numeric(female_diversity$Year))
+plot_data1 &lt;- female_diversity %&gt;% select(Year, count_minority, not_minority)
+
+mm = melt(plot_data1)</code></pre>
+<pre><code>## Using Year as id variables</code></pre>
+<pre class="r"><code>#First plot
+female_diversity$Year &lt;- as.character(as.numeric(female_diversity$Year))
+plot_data1 &lt;- female_diversity %&gt;% select(Year, count_minority, not_minority)
+
+mm = melt(plot_data1)</code></pre>
+<pre><code>## Using Year as id variables</code></pre>
+<pre class="r"><code>ggplot(mm)+geom_bar(aes(x=Year, fill=variable,y=value ), stat=&#39;summary&#39;) + labs(title = &quot;&quot;, x= &quot;&quot;, y =&quot;&quot;) + theme_bw() + ggtitle(&quot;Minority vs not minority&quot;) + labs(y=&quot;Total count in administrative office&quot;, x = &quot;Year&quot;)</code></pre>
+<pre><code>## No summary function supplied, defaulting to `mean_se()</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>#Second Plot
+scatter_plotting_data &lt;- female_diversity %&gt;% group_by(Year) %&gt;% summarize(mean_pct_minority = mean(pct_minority), mean_pct_female = mean(pct_female))
+
+#change color
+ggplot(scatter_plotting_data, aes(x = Year, y = value)) + 
+    geom_point(aes(y = mean_pct_female, col = &quot;Percentage Female %&quot;) ,color=&#39;green&#39;) + 
+    geom_point(aes(y = mean_pct_minority, col = &quot;Percentage Minority %&quot;), color = &#39;cyan&#39;) + theme_dark() +  ggtitle(&quot;Percentage Female and Minority&quot;) + labs(y=&quot;Percentage %&quot;, x = &quot;Year&quot;)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+</div>
+<div id="dimensionality-reduction" class="section level2">
+<h2>Dimensionality Reduction</h2>
+<p>The PC plot shows groups of outliers and clumping of data, which shows no correlation. PC1 is genral strength axis, coefficients have varying signs and a generally low number suggesting a weak strength in data. From varprop graph, PC1 and PC2 eplain the most variance, and PC3 and PC4 seem to be where the scree floor flattens. But none explain variance &gt; 80%. Kasier’s rule suggests PC1 and PC2 are significant with eigenvalues values &gt; 1. Since the angle between the arrow of % minority and % female is high and to either sides of then line perpendicular to the PC1 axis, it suggests no correlation between $ minority and % female.</p>
+<pre class="r"><code>#Change to 3 and 10
+temp = subset(female_diversity, select = -c(3, 10) )
+
+sapply(temp, mode)</code></pre>
+<pre><code>##           Year        Quarter     pct_female      count_all count_minority 
+##    &quot;character&quot;      &quot;numeric&quot;      &quot;numeric&quot;      &quot;numeric&quot;      &quot;numeric&quot; 
+##   pct_minority   count_female   not_minority 
+##      &quot;numeric&quot;      &quot;numeric&quot;      &quot;numeric&quot;</code></pre>
+<pre class="r"><code>temp = subset(temp, select = -c(1, 2, 7, 8) )
+
+
+
+# temp$Year &lt;- as.numeric(as.character(temp$Year))
+temp2 = data.frame(scale(temp))
+
+ggplot(temp2, aes(x = pct_minority, y = pct_female))+geom_point()+coord_fixed() + ggtitle(&quot;PC Plot&quot;)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>temp3 &lt;- princomp(temp2)
+
+summary(temp3, loadings=T)</code></pre>
+<pre><code>## Importance of components:
+##                           Comp.1    Comp.2      Comp.3       Comp.4
+## Standard deviation     1.6634623 1.0804794 0.095997871 0.0261949707
+## Proportion of Variance 0.7015201 0.2959696 0.002336347 0.0001739602
+## Cumulative Proportion  0.7015201 0.9974897 0.999826040 1.0000000000
+## 
+## Loadings:
+##                Comp.1 Comp.2 Comp.3 Comp.4
+## pct_female      0.395  0.687  0.595  0.131
+## count_all      -0.596         0.524 -0.608
+## count_minority -0.597         0.217  0.772
+## pct_minority   -0.364  0.726 -0.569 -0.128</code></pre>
+<pre class="r"><code>eigval&lt;-temp3$sdev^2 #square to convert SDs to eigenvalues
+varprop=round(eigval/sum(eigval),2) #proportion of var explained by each PC
+
+ggplot()+geom_bar(aes(y=varprop,x=1:4),stat=&quot;identity&quot;)+xlab(&quot;&quot;)+geom_path(aes(y=varprop,x=1:4))+
+  geom_text(aes(x=1:4,y=varprop,label=round(varprop,2)),vjust=1,col=&quot;white&quot;,size=5)+
+  scale_y_continuous(breaks=seq(0,.6,.2),labels = scales::percent)+
+  scale_x_continuous(breaks=1:10) + ggtitle(&quot;Varprop&quot;)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<pre class="r"><code>round(cumsum(eigval)/sum(eigval),2)</code></pre>
+<pre><code>## Comp.1 Comp.2 Comp.3 Comp.4 
+##    0.7    1.0    1.0    1.0</code></pre>
+<pre class="r"><code>eigval</code></pre>
+<pre><code>##       Comp.1       Comp.2       Comp.3       Comp.4 
+## 2.7671069362 1.1674357405 0.0092155913 0.0006861765</code></pre>
+<pre class="r"><code>ggplot()+geom_point(aes(temp3$scores[,1], temp3$scores[,2]))+xlab(&quot;PC1&quot;)+ylab(&quot;PC2&quot;)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-5-3.png" width="672" /></p>
+<pre class="r"><code>temp3$loadings[1:4,1:2]%&gt;%as.data.frame%&gt;%rownames_to_column%&gt;%
+ggplot()+geom_hline(aes(yintercept=0),lty=2)+
+  geom_vline(aes(xintercept=0),lty=2)+ylab(&quot;PC2&quot;)+xlab(&quot;PC1&quot;)+
+  geom_segment(aes(x=0,y=0,xend=Comp.1,yend=Comp.2),arrow=arrow(),col=&quot;red&quot;)+
+  geom_label(aes(x=Comp.1*1.1,y=Comp.2*1.1,label=rowname))</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-5-4.png" width="672" /></p>
+<pre class="r"><code>fviz_pca_biplot(temp3)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-5-5.png" width="672" /></p>
+</div>
