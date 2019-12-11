@@ -13,4 +13,6 @@ Here are some projects I have been working on:
 
 - [Project 1](/Project1/)
 
-- [Project 2](/Project2-/)
+- [Project 1](/Project2/)
+
+
