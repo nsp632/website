@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Neil Pareddy" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Project 2: Modeling, Testing, and Predicting</title>
+    <meta name="generator" content="Hugo 0.60.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/blog/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project2/">Project 2: Modeling, Testing, and Predicting</a></strong>
+          </h3>
+        </div>
+        <div class="blog-title">
+          <h4>
+          January 1, 0001
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="modeling" class="section level1">
+<h1>Modeling</h1>
+<div id="instructions" class="section level2">
+<h2>Instructions</h2>
+<p>A knitted R Markdown document (as a PDF) and the raw R Markdown file (as .Rmd) should both be submitted to Canvas by 11:59pm on 11/24/2019. These two documents will be graded jointly, so they must be consistent (i.e., don’t change the R Markdown file without also updating the knitted document). Knit an html copy too, for later! In the .Rmd file for Project 2, you can copy the first code-chunk into your project .Rmd file to get better formatting. Notice that you can adjust the opts_chunk$set(…) above to set certain parameters if necessary to make the knitting cleaner (you can globally set the size of all plots, etc). I have gone ahead and set a few for you (such as disabling warnings and package-loading messges when knitting)!</p>
+<p>Like before, I envision your written text forming something of a narrative structure around your code/output. All results presented must have corresponding code. Any answers/results/plots etc. given without the corresponding R code that generated the result will not be graded. Furthermore, all code contained in your final project document should work properly. Pclease do not include any extraneous code or code which produces error messages. (Code which produces warnings is acceptable, as long as you understand what the warnings mean).</p>
+</div>
+<div id="find-data" class="section level2">
+<h2>Find data:</h2>
+<p>Find one dataset with at least 5 variables that wish to use to build model. At least one should be categorical (with 2-5 groups) and at least two should be numeric. Ideally, one of your variables will be binary (if not, you will need to create one by discretizing a numeric, which is workable but less than ideal). You will need a minimum of 40 observations (<em>at least</em> 10 observations for every explanatory variable you have, ideally 20+ observations/variable).</p>
+<p>It is perfectly fine to use either dataset (or the merged dataset, or a subset of your variables) from Project 1. However, you could also diversify your portfolio a bit by choosing a different dataset to work with (particularly if the variables did not reveal interesting associations in Project 1). The only requirement/restriction is that you may not use data from any examples we have done in class or lab. It would be a good idea to pick more cohesive data this time around (i.e., variables that you actually thing might have a relationship you would want to test). Think more along the lines of your Biostats project.</p>
+<p>Again, you can use data from anywhere you want (see bottom for resources)! If you want a quick way to see whether a built-in (R) dataset has binary and/or character (i.e., categorical) variables, check out this list: <a href="https://vincentarelbundock.github.io/Rdatasets/datasets.html" class="uri">https://vincentarelbundock.github.io/Rdatasets/datasets.html</a>.</p>
+</div>
+<div id="guidelines-and-rubric" class="section level2">
+<h2>Guidelines and Rubric</h2>
+<ul>
+<li><strong>0. (5 pts)</strong> Introduce your dataset and each of your variables (or just your main variables if you have lots) in a paragraph.</li>
+</ul>
+<pre class="r"><code>#Reading csv file of marijuana data
+marijuana_raw &lt;- read.csv(url(&quot;https://vincentarelbundock.github.io/Rdatasets/csv/carData/Arrests.csv&quot;))
+##Cleaning data
+
+#Creating binary dummy variable for &#39;released&#39; variable
+marijuana_raw$releasedB &lt;- 0
+marijuana_raw$releasedB[marijuana_raw$released == &quot;Yes&quot;] &lt;- 1
+
+#Creating binary dummy variable for &#39;employed&#39; variable
+marijuana_raw$employedB &lt;- 0
+marijuana_raw$employedB[marijuana_raw$employed == &quot;Yes&quot;] &lt;- 1
+
+#Creating binary dummy variable for &#39;citizen&#39; variable
+marijuana_raw$citizenB &lt;- 0
+marijuana_raw$citizenB[marijuana_raw$citizen == &quot;Yes&quot;] &lt;- 1
+
+#Deleting origional categorical variables representing &#39;released&#39;, &#39;employed&#39;, and &#39;citizen&#39;
+marijuana &lt;- marijuana_raw
+marijuana &lt;- subset(marijuana, select = -c(released, employed, citizen))</code></pre>
+<p><em>Introduction: Description: Data on police treatment of individuals in Toronto for posession of marijuana. A data frame with 5226 observations on the following 8 variables.Variables:</em>
+<em>released-Whether or not the arrestee was released with a summons; a factor with levels: No; Yes.</em>
+<em>colour-The arrestee’s race; a factor with levels: Black; White.</em>
+<em>year-1997 through 2002; a numeric vector.</em>
+<em>age-in years; a numeric vector.</em>
+<em>sex-a factor with levels: Female; Male.</em>
+<em>employed-a factor with levels: No; Yes.</em>
+<em>citizen-a factor with levels: No; Yes.</em>
+<em>checks-Number of police data bases (of previous arrests, previous convictions, parole status, etc. – 6 in all) on which the arrestee’s name appeared; a numeric vector</em></p>
+<ul>
+<li><strong>1. (15 pts)</strong> Perform a MANOVA testing whether any of your numeric variables (or a subset of them, if including them all doesn’t make sense) show a mean difference across levels of one of your categorical variables (3). If they do, perform univariate ANOVAs to find response(s) showing a mean difference across groups (3), and perform post-hoc t tests to find which groups differ (3). Discuss the number of tests you have performed, calculate the probability of at least one type I error (if unadjusted), and adjust the significance level accordingly (bonferroni correction) before discussing significant differences (3). Briefly discuss assumptions and whether or not they are likely to have been met (2).</li>
+</ul>
+<pre class="r"><code>#Overall MANOVA
+man1&lt;-manova(cbind(age,checks)~colour, data=marijuana)
+summary(man1)</code></pre>
+<pre><code>## Df Pillai approx F num Df den Df Pr(&gt;F)
+## colour 1 0.031571 85.136 2 5223 &lt; 2.2e-16 ***
+## Residuals 5224
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>#Univariate MANOVA
+summary.aov(man1)</code></pre>
+<pre><code>## Response age :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## colour 1 1637 1637.47 23.78 1.112e-06 ***
+## Residuals 5224 359713 68.86
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response checks :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## colour 1 366.3 366.33 159.3 &lt; 2.2e-16 ***
+## Residuals 5224 12012.9 2.30
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>marijuana%&gt;%group_by(colour)%&gt;%summarize(mean(age),mean(checks))</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   colour `mean(age)` `mean(checks)`
+##   &lt;fct&gt;        &lt;dbl&gt;          &lt;dbl&gt;
+## 1 Black         24.8           2.10
+## 2 White         23.5           1.49</code></pre>
+<pre class="r"><code>#Pairewise t-test
+pairwise.t.test(marijuana$age,marijuana$colour,p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  marijuana$age and marijuana$colour 
+## 
+##       Black  
+## White 1.1e-06
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(marijuana$checks,marijuana$colour,p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  marijuana$checks and marijuana$colour 
+## 
+##       Black 
+## White &lt;2e-16
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code> #Adjusting Bonferroni
+pairwise.t.test(marijuana$age,marijuana$colour,p.adj=&quot;bonferroni&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  marijuana$age and marijuana$colour 
+## 
+##       Black  
+## White 1.1e-06
+## 
+## P value adjustment method: bonferroni</code></pre>
+<pre class="r"><code>pairwise.t.test(marijuana$checks,marijuana$colour,p.adj=&quot;bonferroni&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  marijuana$checks and marijuana$colour 
+## 
+##       Black 
+## White &lt;2e-16
+## 
+## P value adjustment method: bonferroni</code></pre>
+<p><em>A one-way multivariate analysis of variance (MANOVA) was conducted to determine the effect of color of marijuana arestees (Black/White) on two dependent variables(age and number of checks).</em>
+<em>MANOVA Assumptions: Random samples and independent observations were met. Multivariate normality of DVs were likely met along with linear relationsips among DVs. However, extreme univariate or multivariable outliers were likely present. But likely no multicollinearity. </em>
+<em>Significant differences were found among the two colours on the two dependent measures, Pillai trace = 031571 , pseudo F(2,5223) = 85.136, p&lt;2.2e-16 .</em>
+<em>ANOVA Assumptions: Random sample and independent observations, independent samples were likely met. Normal distribution and equal variance was likely met as well.</em>
+<em>Univariate analyses of varaiance (ANOVA) was conducted with &amp; without Bonferroni mathod for controlling Type I error rates for multiple comparison. The univeriate ANOVAs for age and number of checks were also significant, F(2,5224) = 23.78, p&lt;1.112e-06 and F(2,5224) = 159.3, p&lt; 2.2e-16 , respectively.</em>
+<em>Post hoc analysis was performed conducting pairwise comparisons to determine which colours differed in age and checks. All two colours were found to differ signifciantly from each other in terms of age and checks after adjusting for multiple comparisons (binferroni)</em>
+<em>1 MANOVA, 2 ANOVA and 2 t tests: 5 tests in total: should be using alpha = 0.05/5 = 0.01 as significance levelS still significant.</em></p>
+<ul>
+<li><strong>2. (10 pts)</strong> Perform some kind of randomization test on your data (that makes sense). This can be anything you want! State null and alternative hypotheses, perform the test, and interpret the results (7). Create a plot visualizing the null distribution and the test statistic (3).</li>
+</ul>
+<pre class="r"><code>#Null- Age is the same for White and Black arestees
+#Alternate- Age is different for White and Black arestees
+white&lt;-marijuana$checks[marijuana$colour == &quot;White&quot;]
+black&lt;-marijuana$checks[marijuana$colour == &quot;Black&quot;]
+data_rand&lt;-data.frame(colour=c(rep(&quot;White&quot;,3938),rep(&quot;Black&quot;,1288)),checks=c(white,black))
+
+
+rand_dist&lt;-vector()
+for(i in 1:5000){
+  new&lt;-data.frame(checks=sample(data_rand$checks),colour=data_rand$colour)
+  rand_dist[i]&lt;-mean(new[new$colour==&quot;White&quot;,]$checks)- mean(new[new$colour==&quot;Black&quot;,]$checks)
+}
+data_rand%&gt;%group_by(colour)%&gt;%summarize(s=mean(checks))%&gt;%summarize(diff(s))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `diff(s)`
+##       &lt;dbl&gt;
+## 1    -0.614</code></pre>
+<pre class="r"><code># p-value
+mean(rand_dist&lt;-0.6143611)*2 </code></pre>
+<pre><code>## [1] 1.228722</code></pre>
+<p><em>Null Hypothesis: the mean of checks for White and Black are the same. Alternative Hypothesis: the mean of checks for White and Black are not the same. Thr p value is 1.228722, which is &gt; 0.5, suggesting Null hypothesis is rejected.</em></p>
+<ul>
+<li><strong>3. (35 pts)</strong> Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction. Mean-center any numeric variables involved in the interaction.</li>
+</ul>
+<pre class="r"><code>#coefficients
+marijuana$age_c &lt;- marijuana$age - mean(marijuana$age)
+fit&lt;-lm(checks ~ age_c * year, data= marijuana )
+summary(fit)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = checks ~ age_c * year, data = marijuana)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -2.6400 -1.4870 -0.3982 1.3193 4.4549
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 81.720197 30.325830 2.695 0.00707 **
+## age_c -7.451599 3.590654 -2.075 0.03801 *
+## year -0.040052 0.015167 -2.641 0.00830 **
+## age_c:year 0.003739 0.001796 2.082 0.03737 *
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 1.524 on 5222 degrees of
+freedom
+## Multiple R-squared: 0.02037, Adjusted R-squared: 0.01981
+## F-statistic: 36.2 on 3 and 5222 DF, p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>#plot regression
+marijuana%&gt;%ggplot(aes(year, age), gorup = 1)+geom_point()+geom_smooth(method = &#39;lm&#39;,se=F)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#normality assumtion
+#indexed 4998 since 5000 is limit for shapiro-wilk test
+shapiro.test(marijuana$checks[0:4998])</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  marijuana$checks[0:4998]
+## W = 0.8652, p-value &lt; 2.2e-16</code></pre>
+<pre class="r"><code>bptest(fit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit
+## BP = 18.893, df = 3, p-value = 0.0002877</code></pre>
+<pre class="r"><code>#coeftest
+coeftest(fit, vcov=vcovHC(fit))</code></pre>
+<pre><code>##
+## t test of coefficients:
+##
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 81.7201966 30.6400971 2.6671 0.007674 **
+## age_c -7.4515993 3.5915892 -2.0747 0.038060 *
+## year -0.0400516 0.0153232 -2.6138 0.008980 **
+## age_c:year 0.0037392 0.0017962 2.0818 0.037413 *
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>(sum((marijuana$checks-mean(marijuana$checks))^2)-sum(fit$residuals^2))/sum((marijuana$checks-mean(marijuana$checks))^2)</code></pre>
+<pre><code>## [1] 0.0203735</code></pre>
+<pre class="r"><code>#Regression without correlation
+fit2&lt;-lm(checks ~ age + year, data= marijuana )
+lrtest(fit, fit2)</code></pre>
+<pre><code>## Likelihood ratio test
+##
+## Model 1: checks ~ age_c * year
+## Model 2: checks ~ age + year
+## #Df LogLik Df Chisq Pr(&gt;Chisq)
+## 1 5 -9615.0
+## 2 4 -9617.1 -1 4.3372 0.03729 *
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>##What is null model?</code></pre>
+<ul>
+<li>Interpret the coefficient estimates (do not discuss significance) :</li>
+</ul>
+<p><em>81.720197 is the prediicted value of checks when age and year = 0. For every one increase in age, there is a -7.451599 decrease in checks (-7.451599 is slope for age on checks while holding year constant). For every one increase in year, there is a -0.040052 decrease in checks on average (-0.040052 is slope for year on checks while holding year constant). Interaction shows that, ror every one increase both age and year, there is a 0.003739 increase in checks on average.</em></p>
+<ul>
+<li>Plot the regression using <code>ggplot()</code>. If your interaction is numeric by numeric, refer to code near the end of WS15 to make the plot. If you have 3 or more predictors, just chose two to plot for convenience. :</li>
+</ul>
+<p><em>As seen in executable</em></p>
+<ul>
+<li>Check assumptions of linearity, normality, and homoskedasticity either graphically or using a hypothesis test :</li>
+</ul>
+<p><em>Shapio-Wilk test: 2.2e-16 is &lt; 0.05 suggesting normality assumption is violated. BP-Test:0.0002877 &lt;0.05 suggesting violation of homoskedasticity. Clearly, according to visual analysis of previous plot, linearity assumption is violated. </em></p>
+<ul>
+<li>Regardless, recompute regression results with robust standard errors via <code>coeftest(..., vcov=vcovHC(...))</code>. Discuss significance of results, including any changes from before/after robust SEs if applicable.</li>
+<li><p>What proportion of the variation in the outcome does your model explain? :</p>
+<p><em>0.0203735 of variation</em></p></li>
+<li><p>Finally, rerun the regression but without interactions (just main effects); compare this with the interaction model and the null model using a likelihood ratio test</p></li>
+<li><p><strong>4. (5 pts)</strong> Rerun same regression model (with interaction), but this time compute bootstrapped standard errors. Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)</p></li>
+</ul>
+<pre class="r"><code>fit&lt;-lm( checks~ age_c * year, data=marijuana)
+  resids&lt;-fit$residuals
+  fitted&lt;-fit$fitted.values
+  resid_resamp&lt;-replicate(5000,{
+    new_resids&lt;-sample(resids,replace=TRUE)
+    newdat&lt;-marijuana
+    newdat$new_y&lt;-fitted+new_resids
+    fit&lt;-lm( new_y~ age_c * year, data=newdat)
+    coef(fit)
+})
+resid_resamp%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept)    age_c       year  age_c:year
+## 1    30.54773 3.599754 0.01527752 0.001800336</code></pre>
+<p><em>All coefficents changed. Intercept changed from 81.720197 to 30.88536 , age_c changed to 3.558608 , year changed to 0.01544682, and age_c:year changed to 0.001779752. p-value remained the same.</em></p>
+<ul>
+<li><strong>5. (40 pts)</strong> Perform a logistic regression predicting a binary categorical variable (if you don’t have one, make/get one) from at least two explanatory variables (interaction not necessary).</li>
+</ul>
+<pre class="r"><code>class_diag&lt;-function(probs,truth){
+  tab&lt;-table(factor(probs&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+  if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+  #CALCULATE EXACT AUC
+  ord&lt;-order(probs, decreasing=TRUE)
+  probs &lt;- probs[ord]; truth &lt;- truth[ord]
+  TPR=cumsum(truth)/max(1,sum(truth))
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  dup&lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+  TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+  n &lt;- length(TPR)
+  auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+  data.frame(acc,sens,spec,ppv,auc)
+  }
+library(tidyverse)
+fit4 &lt;- glm(citizenB~., data = marijuana, family = &#39;binomial&#39;)
+coeftest(fit4)</code></pre>
+<pre><code>##
+## z test of coefficients:
+##
+## Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept) -1.1671e+03 6.4329e+01 -18.1423 &lt; 2.2e-16
+***
+## X 1.8765e-06 2.8227e-05 0.0665 0.9469966
+## colourWhite 1.2944e+00 8.9462e-02 14.4689 &lt; 2.2e-16 ***
+## year 5.8447e-01 3.2184e-02 18.1604 &lt; 2.2e-16 ***
+## age -2.0255e-02 4.8293e-03 -4.1941 2.740e-05 ***
+## sexMale -8.1869e-01 1.9323e-01 -4.2369 2.267e-05 ***
+## checks 1.0106e-01 2.9423e-02 3.4346 0.0005935 ***
+## releasedB 5.2424e-01 1.0488e-01 4.9984 5.780e-07 ***
+## employedB 2.4909e-01 1.0147e-01 2.4547 0.0140992 *
+## age_c NA NA NA NA
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>probs &lt;- predict(fit4, type = &quot;response&quot;)
+##Next line not working, couldn&#39;t figure out which library to import
+class_diag(probs, marijuana$citizenB)</code></pre>
+<pre><code>##         acc     sens     spec       ppv       auc
+## 1 0.8610792 0.983165 0.155642 0.8706023 0.7723277</code></pre>
+<pre class="r"><code>table(predict=as.numeric(probs&gt;.5),truth=marijuana$citizenB)%&gt;%addmargins</code></pre>
+<pre><code>##        truth
+## predict    0    1  Sum
+##     0    120   75  195
+##     1    651 4380 5031
+##     Sum  771 4455 5226</code></pre>
+<pre class="r"><code>data &lt;- marijuana
+#Density Plot
+data$logit &lt;- predict(fit4, type = &#39;link&#39;)
+data %&gt;% ggplot() + geom_density(aes(logit, color = citizenB, fill = citizenB), alpha = 0.4) +
+  theme(legend.position = c(0.85, 0.85)) + geom_vline(xintercept = 0) </code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-6-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#10 fold 
+set.seed(1234)
+k=10 #choose number of folds
+data1&lt;-data[sample(nrow(data)),] #randomly order rows
+folds&lt;-cut(seq(1:nrow(data)),breaks=k,labels=F) #create folds
+diags&lt;-NULL
+for(i in 1:k){
+  ## Create training and test sets
+  train&lt;-data1[folds!=i,]
+  test&lt;-data1[folds==i,]
+  truth&lt;-test$y
+  ## Train model on training set
+  fit&lt;-glm(citizenB~age + year,data=data,family=&quot;binomial&quot;)
+  probs&lt;-predict(fit,newdata = test,type=&quot;response&quot;)
+  ## Test model on test set (save all k results)
+  diags&lt;-rbind(diags,class_diag(probs,truth))
+}
+  
+apply(diags,2,mean) #average across all k results</code></pre>
+<pre><code>##        acc       sens       spec        ppv        auc 
+## 0.16954023 1.00000000 0.01699753 0.16809775 1.00000000</code></pre>
+<ul>
+<li>Interpret coefficient estimates in context (10)</li>
+</ul>
+<p><em>Only interpreting coefficients for year and age. Intercept is the predicted odds of being citizen when all other variables = 0. Holding all of variables in marijuana dataframe constant, going up 1 year increases log-odds (logit score) by 5.8447e-01. Holding all of variables in marijuana dataframe constant, going up 1 year increases log-odds (logit score) by 5.8447e-01. Holding all of variables in marijuana dataframe constant, going up 1 age decreases log-odds (logit score) by -2.0255e-02.</em></p>
+<ul>
+<li>Report a confusion matrix for your logistic regression (2)</li>
+</ul>
+<p><em>As shown.</em></p>
+<ul>
+<li>Compute and discuss the Accuracy, Sensitivity (TPR), Specificity (TNR), and Recall (PPV) of your model (5)</li>
+</ul>
+<p><em>Sensetivity (TPR) is 4380/4455 = (which is true positive rate). Specificity (TNR) is (which is true negative rate) is 120/771 = . And Precision (PPV) = 4380/5031. Acuracy = (120 + 4380)/ (165 + 5031).</em></p>
+<ul>
+<li><p>Using ggplot, plot density of log-odds (logit) by your binary outcome variable (3)</p></li>
+<li><p>Generate an ROC curve (plot) and calculate AUC (either manually or with a package); interpret</p></li>
+</ul>
+<p><em>AUC is 1.00, suggesting the binary variable, citizenB, is not an accurate predictor. Since, 1.00 is too perfect, however a high AUC would traditionally suggest the model is a good fit.</em></p>
+<ul>
+<li>Perform 10-fold (or repeated random sub-sampling) CV and report average out-of-sample Accuracy, Sensitivity, and Recall (10)</li>
+</ul>
+<p><em>Average out of sample Acuraccy is 0.1695391, sensitivity is 1.00 and Recall is 1.00</em></p>
+<ul>
+<li><strong>6. (10 pts)</strong> Choose one variable you want to predict (can be one you used from before; either binary or continuous) and run a LASSO regression inputting all the rest of your variables as predictors. Choose lambda to give the simplest model whose accuracy is near that of the best (i.e., <code>lambda.1se</code>). Discuss which variables are retained. Perform 10-fold CV using this model: if response in binary, compare model’s out-of-sample accuracy to that of your logistic regression in part 5; if response is numeric, compare the residual standard error (at the bottom of the summary output, aka RMSE): lower is better fit!</li>
+</ul>
+<pre class="r"><code>#LASSO
+library(glmnet)
+y&lt;-as.matrix(marijuana$citizenB)
+x&lt;-marijuana%&gt;% select(age, checks) %&gt;% scale%&gt;%as.matrix
+cv&lt;-cv.glmnet(x,y,family=&quot;binomial&quot;)
+lasso&lt;-glmnet(x,y,family=&quot;binomial&quot;,lambda=cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 3 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                   s0
+## (Intercept) 1.754094
+## age         0.000000
+## checks      .</code></pre>
+<pre class="r"><code>set.seed(1234)
+k=5 #choose number of folds
+data1&lt;-marijuana[sample(nrow(marijuana)),] #randomly order rows
+folds&lt;-cut(seq(1:nrow(marijuana)),breaks=k,labels=F) #create folds
+diags&lt;-NULL
+for(i in 1:k){
+  train&lt;-data1[folds!=i,]
+  test&lt;-data1[folds==i,]
+  fit&lt;-lm(checks~age,data=marijuana)
+  yhat&lt;-predict(fit,newdata=test)
+  diags&lt;-mean((test$checks-yhat)^2)
+}
+mean(diags)</code></pre>
+<pre><code>## [1] 2.318076</code></pre>
+<p><em>cv$lambda.1se was chosen. Only age was retained, however 0.000000 was returned. Thus, shows the model is not fit and has no predictability. 10 fold VC returned RMSE 2.402231 which was low, suggesting better fit than before.</em></p>
+</div>
+<div id="where-do-i-find-data-again" class="section level2">
+<h2>Where do I find data again?</h2>
+<p>You can choose ANY datasets you want that meet the above criteria for variables and observations. You can make it as serious as you want, or not, but keep in mind that you will be incorporating this project into a portfolio webpage for your final in this course, so choose something that really reflects who you are, or something that you feel will advance you in the direction you hope to move career-wise, or something that you think is really neat, or whatever. On the flip side, regardless of what you pick, you will be performing all the same tasks, so it doesn’t end up being that big of a deal.</p>
+<p>If you are totally clueless and have no direction at all, log into the server and type</p>
+<pre class="r"><code>data(package = .packages(all.available = TRUE))</code></pre>
+<p>This will print out a list of <strong>ALL datasets in ALL packages</strong> installed on the server (a ton)! Scroll until your eyes bleed! Actually, do not scroll that much… To start with something more manageable, just run the command on your own computer, or just run <code>data()</code> to bring up the datasets in your current environment. To read more about a dataset, do <code>?packagename::datasetname</code>.</p>
+<p>If it is easier for you, and in case you don’t have many packages installed, a list of R datasets from a few common packages (also downloadable in CSV format) is given at the following website: <a href="https://vincentarelbundock.github.io/Rdatasets/datasets.html" class="uri">https://vincentarelbundock.github.io/Rdatasets/datasets.html</a>.</p>
+<ul>
+<li><p>A good package to download for fun/relevant data is <code>fivethiryeight</code>.
+Run <code>install.packages(&quot;fivethirtyeight&quot;),</code> load the packages with <code>library(fivethirtyeight)</code>, run <code>data()</code>, and then scroll down to view the datasets. Here is an online list of all 127 datasets (with links to the 538 articles). Lots of sports, politics, current events, etc.</p></li>
+<li><p>If you have already started to specialize (e.g., ecology, epidemiology) you might look at discipline-specific R packages (vegan, epi, respectively). We will be using some tools from these packages later in the course, but they come with lots of data too, which you can explore according to the directions above</p></li>
+<li><p>However, you <em>emphatically DO NOT</em> have to use datasets available via R packages! In fact, I would much prefer it if you found the data from completely separate sources and brought them together (a much more realistic experience in the real world)! You can even reuse data from your SDS328M project, provided it shares a variable in common with other data which allows you to merge the two together (e.g., if you still had the timestamp, you could look up the weather that day: <a href="https://www.wunderground.com/history/" class="uri">https://www.wunderground.com/history/</a>). If you work in a research lab or have access to old data, you could potentially merge it with new data from your lab!</p></li>
+<li><p>Here is a curated list of interesting datasets (read-only spreadsheet format): <a href="https://docs.google.com/spreadsheets/d/1wZhPLMCHKJvwOkP4juclhjFgqIY8fQFMemwKL2c64vk/edit" class="uri">https://docs.google.com/spreadsheets/d/1wZhPLMCHKJvwOkP4juclhjFgqIY8fQFMemwKL2c64vk/edit</a></p></li>
+<li><p>Here is another great compilation of datasets: <a href="https://github.com/rfordatascience/tidytuesday" class="uri">https://github.com/rfordatascience/tidytuesday</a></p></li>
+<li><p>Here is the UCI Machine Learning Repository: <a href="https://archive.ics.uci.edu/ml/index.php" class="uri">https://archive.ics.uci.edu/ml/index.php</a></p>
+<ul>
+<li>See also <a href="https://en.wikipedia.org/wiki/List_of_datasets_for_machine-learning_research#Biological_data" class="uri">https://en.wikipedia.org/wiki/List_of_datasets_for_machine-learning_research#Biological_data</a></li>
+</ul></li>
+<li><p>Here is another good general place to look: <a href="https://www.kaggle.com/datasets" class="uri">https://www.kaggle.com/datasets</a></p></li>
+<li><p>To help narrow your search down or to see interesting variable ideas, check out <a href="https://www.tylervigen.com/spurious-correlations" class="uri">https://www.tylervigen.com/spurious-correlations</a>. This is the spurious correlations website, and it is fun, but if you look at the bottom of each plot you will see sources for the data. This is a good place to find very general data (or at least get a sense of where you can scrape data together from)!</p></li>
+<li><p>If you are interested in medical data, check out www.countyhealthrankings.org</p></li>
+<li><p>If you are interested in scraping UT data, they make <em>loads</em> of data public (e.g., beyond just professor CVs and syllabi). Check out all the data that is available in the statistical handbooks: <a href="https://reports.utexas.edu/statistical-handbook" class="uri">https://reports.utexas.edu/statistical-handbook</a></p></li>
+</ul>
+<div id="broader-data-sources" class="section level5">
+<h5>Broader data sources:</h5>
+<p><a href="www.data.gov">Data.gov</a> 186,000+ datasets!</p>
+<p><a href="Social%20Explorer">Social Explorer</a> is a nice interface to Census and American Community Survey data (more user-friendly than the government sites). May need to sign up for a free trial.</p>
+<p><a href="www.bls.gov">U.S. Bureau of Labor Statistics</a></p>
+<p><a href="www.census.gov">U.S. Census Bureau</a></p>
+<p><a href="www.gapminder.org/data">Gapminder</a>, data about the world.</p>
+<p>…</p>
+</div>
+</div>
+</div>
+
+              <hr>
+              <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div>
+            </div>
+          </div>
+          <hr>
+        <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+        </div>
+      </div>
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

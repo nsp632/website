@@ -8,30 +8,33 @@ tags: ["R Markdown", "plot", "regression"]
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE)
+library(reticulate)
+use_python("usr/bin/python")
 ```
 
-# R Markdown
+# Using Python in SDS348
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+We've imported python code into RMarkdown files, such as this one. We used reticulate to allow R and python to talk to each other in python code chunks. Below is some work from HW assignments.
 
-You can embed an R code chunk like this:
+The following is my solution to the problem: Write a function that takes a string of nucleotides as input and returns a dictionary with all 3-mers present in that string, and the number of times that each 3-mer occurs. Then use your function to find the 3-mers in the DNA sequence my_seq1 defined below.
 
-```{r cars}
-summary(cars)
-fit <- lm(dist ~ speed, data = cars)
-fit
+```{python}
+my_seq1 = "ATCATCATG"
+my_seq2 = "CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT"
+def count_kmers(read, k):
+  counts = {}
+  num_kmers = len(read) - k + 1
+  for i in range(num_kmers):
+    kmer = read[i:i+k]
+    if kmer not in counts:
+      counts[kmer] = 0
+    counts[kmer] += 1
+  return counts
+print(count_kmers(my_seq1, 3)) 
+print(count_kmers(my_seq2, 3))
 ```
 
-# Including Plots
+The following is a uses Needleman-Wunsch to align the following two sequences by hand: 1. CCAGT 2. ACAAGT
 
-You can also embed plots. See Figure \@ref(fig:pie) for example:
+![Needlman-Wunsch example](/Users/raghupareddy/Desktop/website/static/img/FullSizeRender.jpg)
 
-```{r pie, fig.cap='A fancy pie chart.', tidy=FALSE}
-par(mar = c(0, 1, 0, 1))
-pie(
-  c(280, 60, 20),
-  c('Sky', 'Sunny side of pyramid', 'Shady side of pyramid'),
-  col = c('#0292D8', '#F7EA39', '#C4B632'),
-  init.angle = -50, border = NA
-)
-```
