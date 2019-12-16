@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>R on Neil Pareddy</title>
-    <link>/categories/r/</link>
-    <description>Recent content in R on Neil Pareddy</description>
+    <title>Needleman-Wunsch on Neil Pareddy</title>
+    <link>/tags/needleman-wunsch/</link>
+    <description>Recent content in Needleman-Wunsch on Neil Pareddy</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
     <lastBuildDate>Sun, 15 Dec 2019 21:13:14 -0500</lastBuildDate>
     
-	<atom:link href="/categories/r/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="/tags/needleman-wunsch/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
